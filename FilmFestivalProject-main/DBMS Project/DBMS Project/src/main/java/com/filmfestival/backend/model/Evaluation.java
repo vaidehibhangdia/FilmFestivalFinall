@@ -27,6 +27,10 @@ public class Evaluation {
     private Integer score;
     private String remarks;
 
+    @Column(name = "ticket_id")
+    @JsonProperty("ticket_id")
+    private Integer ticketId;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 }

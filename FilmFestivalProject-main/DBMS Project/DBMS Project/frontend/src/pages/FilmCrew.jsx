@@ -17,7 +17,6 @@ function FilmCrew() {
     crew_id: '', 
     film_id: '', 
     name: '', 
-    phone_no: '', 
     role: '' 
   });
   const [errors, setErrors] = useState({});
@@ -87,19 +86,23 @@ function FilmCrew() {
       name: member.name || '',
       role: member.role || '',
       film_id: member.film_id || '',
-      phone_no: member.phone_no || '',
     });
     formModal.open();
   };
 
   const handleDelete = async (id) => {
+    console.log('Deleting crew with ID:', id);
+    if (!id) {
+      showToast('Invalid crew ID', 'error');
+      return;
+    }
     if (!window.confirm('Delete this crew member?')) return;
     try {
       await deleteFilmCrew(id);
       showToast('Crew member deleted successfully', 'success');
       await loadData();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete crew member', 'error');
     }
   };
 
@@ -132,7 +135,7 @@ function FilmCrew() {
         <div className="page-toolbar">
           <div className="toolbar-left">
             <div className="search-box">
-              <input
+              <input 
                 type="text"
                 className="search-input"
                 placeholder="🔍 Search crew..."
@@ -181,7 +184,14 @@ function FilmCrew() {
                     </div>
                     <div className="film-actions">
                       <Button variant="secondary" size="sm" onClick={() => handleEdit(member)} icon="✏️">Edit</Button>
-                      <Button variant="danger" size="sm" onClick={() => handleDelete(member.id)} icon="🗑️">Delete</Button>
+                      <button 
+                        className="btn btn-danger btn-sm"
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }}
+                      >
+                        <span className="btn-icon">🗑️</span>
+                        Delete
+                      </button>
                     </div>
                   </CardBody>
                 </Card>
@@ -228,11 +238,6 @@ function FilmCrew() {
               { value: '', label: '-- Select Film --' },
               ...films.map(f => ({ value: f.film_id, label: f.title }))
             ]}
-          />
-          <Input
-            label="Phone Number"
-            value={formData.phone_no}
-            onChange={(e) => setFormData({...formData, phone_no: e.target.value})}
           />
         </form>
       </Modal>

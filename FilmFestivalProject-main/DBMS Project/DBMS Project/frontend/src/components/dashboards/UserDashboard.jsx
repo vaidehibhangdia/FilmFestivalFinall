@@ -6,6 +6,7 @@ export const UserDashboard = () => {
   const { user, token } = useContext(AuthContext);
   const [films, setFilms] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('films');
   
@@ -28,12 +29,25 @@ export const UserDashboard = () => {
       const filmsRes = await fetch('http://localhost:8080/api/public/films', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (filmsRes.ok) setFilms(await filmsRes.json());
+      if (filmsRes.ok) {
+        const data = await filmsRes.json();
+        console.log('[Dashboard Data] Films:', data);
+        setFilms(data);
+      }
 
       const bookingsRes = await fetch('http://localhost:8080/api/user/my-bookings', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (bookingsRes.ok) setBookings(await bookingsRes.json());
+
+      const lbRes = await fetch('http://localhost:8080/api/public/leaderboard', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (lbRes.ok) {
+        const lbData = await lbRes.json();
+        console.log('[Dashboard Data] Leaderboard:', lbData);
+        setLeaderboard(lbData);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -255,15 +269,19 @@ export const UserDashboard = () => {
                         <span><i className="fas fa-clock me-1"></i>{film.runtime}m</span>
                         <span className="genre-tag">{film.genre}</span>
                       </div>
-                      {film.avg_score ? (
-                        <div className="film-rating">
-                          <span className="stars">★★★★★</span>
-                          <span className="score">{film.avg_score.toFixed(1)}</span>
-                          <span className="count">({film.evaluation_count})</span>
-                        </div>
-                      ) : (
-                        <div className="film-rating no-rating">Not yet rated</div>
-                      )}
+                      {(() => {
+                        const score = film.avg_score ?? film.AVG_SCORE;
+                        const count = film.evaluation_count ?? film.EVALUATION_COUNT;
+                        return score ? (
+                          <div className="film-rating">
+                            <span className="stars">★★★★★</span>
+                            <span className="score">{Number(score).toFixed(1)}</span>
+                            <span className="count">({count})</span>
+                          </div>
+                        ) : (
+                          <div className="film-rating no-rating">Not yet rated</div>
+                        );
+                      })()}
                       <button className="book-btn-premium" onClick={() => handleOpenBooking(film)}>
                         <i className="fas fa-calendar-plus me-2"></i>Book Ticket
                       </button>
@@ -306,6 +324,52 @@ export const UserDashboard = () => {
                       <div className="ticket-price">₹{booking.total_price?.toFixed(0) || booking.ticket_price}</div>
                       <div className="ticket-id">#{booking.ticket_id}</div>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <div className="dashboard-content fade-in">
+            <div className="section-header">
+              <h2>Festival Leaderboard</h2>
+              <p>Top-rated films according to our expert jury</p>
+            </div>
+            
+            {leaderboard.length === 0 ? (
+              <div className="empty-state">
+                <i className="fas fa-award fa-3x"></i>
+                <p>No ratings have been submitted yet.</p>
+              </div>
+            ) : (
+              <div className="leaderboard-container-premium">
+                {leaderboard.map((film, index) => (
+                  <div key={film.film_id} className={`leaderboard-item-premium rank-${index + 1}`}>
+                    <div className="rank-badge">{index + 1}</div>
+                    <div className="film-info">
+                      <h4>{film.title}</h4>
+                      <div className="film-meta-small">
+                        <span>{film.genre}</span> • <span>{film.language}</span>
+                      </div>
+                    </div>
+                    <div className="rating-stats">
+                      <div className="avg-score">
+                        <span className="score-val">{Number(film.avg_score || film.rating).toFixed(1)}</span>
+                        <span className="score-max">/10</span>
+                      </div>
+                      <div className="eval-count">
+                        <i className="fas fa-user-edit me-1"></i>
+                        {film.evaluation_count} jury reviews
+                      </div>
+                    </div>
+                    {film.award_name && (
+                      <div className="award-badge-mini">
+                        <i className="fas fa-medal me-1"></i>
+                        {film.award_name}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -372,41 +436,6 @@ export const UserDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'leaderboard' && (
-          <div className="dashboard-content fade-in">
-             <div className="section-header">
-              <h2>Film Leaderboard</h2>
-              <p>The highest rated films by our jury members</p>
-            </div>
-            
-            {films.filter(f => f.avg_score).length === 0 ? (
-              <div className="empty-state">
-                <i className="fas fa-trophy fa-3x"></i>
-                <p>No ratings have been submitted yet. Come back soon!</p>
-              </div>
-            ) : (
-              <div className="leaderboard-premium">
-                {films
-                  .filter(f => f.avg_score)
-                  .sort((a, b) => b.avg_score - a.avg_score)
-                  .slice(0, 10)
-                  .map((film, index) => (
-                    <div key={film.film_id} className="leaderboard-card">
-                      <div className="rank">#{index + 1}</div>
-                      <div className="film-info">
-                        <h4>{film.title}</h4>
-                        <p>{film.genre} • {film.language}</p>
-                      </div>
-                      <div className="score">
-                        <span className="value">{film.avg_score.toFixed(1)}</span>
-                        <span className="total">/10</span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

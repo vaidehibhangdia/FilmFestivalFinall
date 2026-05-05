@@ -53,6 +53,49 @@ public class AdminDashboardController {
         return evaluationRepository.findAll();
     }
 
+    // --- Films (JPA based) ---
+    @GetMapping("/films")
+    public List<Film> getAllFilms() {
+        return filmRepository.findAll();
+    }
+
+    @PostMapping("/films")
+    public Film createFilm(@RequestBody Film film) {
+        return filmRepository.save(film);
+    }
+
+    @PutMapping("/films/{id}")
+    public ResponseEntity<Film> updateFilm(@PathVariable Integer id, @RequestBody Film filmDetails) {
+        return filmRepository.findById(id)
+                .map(film -> {
+                    film.setTitle(filmDetails.getTitle());
+                    film.setDirector(filmDetails.getDirector());
+                    film.setGenre(filmDetails.getGenre());
+                    film.setLanguage(filmDetails.getLanguage());
+                    film.setDurationMinutes(filmDetails.getDurationMinutes());
+                    film.setReleaseYear(filmDetails.getReleaseYear());
+                    film.setCountry(filmDetails.getCountry());
+                    film.setDescription(filmDetails.getDescription());
+                    return ResponseEntity.ok(filmRepository.save(film));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/films/{id}")
+    public ResponseEntity<?> deleteFilm(@PathVariable Integer id) {
+        System.out.println("DEBUG: Deleting film with ID: " + id);
+        return filmRepository.findById(id)
+                .map(film -> {
+                    filmRepository.delete(film);
+                    System.out.println("DEBUG: Film deleted successfully");
+                    return ResponseEntity.ok().build();
+                })
+                .orElseGet(() -> {
+                    System.out.println("DEBUG: Film not found for ID: " + id);
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
     // --- Venues (JPA based) ---
     @GetMapping("/venues")
     public List<Venue> getAllVenues() {
@@ -78,12 +121,17 @@ public class AdminDashboardController {
 
     @DeleteMapping("/venues/{id}")
     public ResponseEntity<?> deleteVenue(@PathVariable Integer id) {
+        System.out.println("DEBUG: Deleting venue with ID: " + id);
         return venueRepository.findById(id)
                 .map(venue -> {
                     venueRepository.delete(venue);
+                    System.out.println("DEBUG: Venue deleted successfully");
                     return ResponseEntity.ok().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> {
+                    System.out.println("DEBUG: Venue not found for ID: " + id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 
     // --- Complex Queries (JdbcTemplate based) ---
@@ -116,12 +164,17 @@ public class AdminDashboardController {
 
     @DeleteMapping("/attendees/{id}")
     public ResponseEntity<?> deleteAttendee(@PathVariable Integer id) {
+        System.out.println("DEBUG: Deleting attendee with ID: " + id);
         return attendeeRepository.findById(id)
                 .map(attendee -> {
                     attendeeRepository.delete(attendee);
+                    System.out.println("DEBUG: Attendee deleted successfully");
                     return ResponseEntity.ok().build();
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> {
+                    System.out.println("DEBUG: Attendee not found for ID: " + id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 
     @GetMapping("/screenings")
@@ -242,6 +295,20 @@ public class AdminDashboardController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/awards/{id}")
+    public ResponseEntity<Award> updateAward(@PathVariable Integer id, @RequestBody Award awardDetails) {
+        return awardRepository.findById(id)
+                .map(award -> {
+                    award.setAwardName(awardDetails.getAwardName());
+                    award.setCategory(awardDetails.getCategory());
+                    award.setYear(awardDetails.getYear());
+                    award.setFilmId(awardDetails.getFilmId());
+                    award.setCrewId(awardDetails.getCrewId());
+                    return ResponseEntity.ok(awardRepository.save(award));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/juries")
     public List<Map<String, Object>> getAllJuries() {
         return dashboardQueryService.getAllJuries();
@@ -263,6 +330,18 @@ public class AdminDashboardController {
                 .map(filmCrew -> {
                     filmCrewRepository.delete(filmCrew);
                     return ResponseEntity.ok().build();
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/filmcrew/{id}")
+    public ResponseEntity<FilmCrew> updateFilmCrew(@PathVariable Integer id, @RequestBody FilmCrew crewDetails) {
+        return filmCrewRepository.findById(id)
+                .map(crew -> {
+                    crew.setName(crewDetails.getName());
+                    crew.setRole(crewDetails.getRole());
+                    crew.setFilmId(crewDetails.getFilmId());
+                    return ResponseEntity.ok(filmCrewRepository.save(crew));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

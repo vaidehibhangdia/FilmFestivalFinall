@@ -21,8 +21,8 @@ public class PublicController {
     private DashboardQueryService dashboardQueryService;
 
     @GetMapping("/films")
-    public List<Film> getAllFilms() {
-        return filmRepository.findAll();
+    public List<Map<String, Object>> getAllFilms() {
+        return dashboardQueryService.getFilmsWithRatings();
     }
 
     @GetMapping("/screenings")
@@ -31,5 +31,10 @@ public class PublicController {
             return dashboardQueryService.getScreeningsByFilmId(film_id);
         }
         return dashboardQueryService.getAllScreenings();
+    }
+
+    @GetMapping("/leaderboard")
+    public List<Map<String, Object>> getLeaderboard() {
+        return dashboardQueryService.getAwardEligibleFilms();
     }
 }

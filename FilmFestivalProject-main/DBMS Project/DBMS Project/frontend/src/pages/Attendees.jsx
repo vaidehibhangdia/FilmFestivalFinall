@@ -85,13 +85,18 @@ function Attendees() {
   };
 
   const handleDelete = async (id) => {
+    console.log('Deleting attendee with ID:', id);
+    if (!id) {
+      showToast('Invalid attendee ID', 'error');
+      return;
+    }
     if (!window.confirm('Delete this attendee?')) return;
     try {
       await deleteAttendee(id);
       showToast('Attendee deleted successfully', 'success');
       await loadAttendees();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete attendee', 'error');
     }
   };
 
@@ -172,7 +177,18 @@ function Attendees() {
                   </div>
                   <div className="film-actions">
                     <Button variant="secondary" size="sm" onClick={() => handleEdit(attendee)} icon="✏️">Edit</Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(attendee.id)} icon="🗑️">Delete</Button>
+                    <button 
+                      className="btn btn-danger btn-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        alert('DEBUG: Delete clicked for ' + attendee.name);
+                        handleDelete(attendee.id); 
+                      }}
+                    >
+                      <span className="btn-icon">🗑️</span>
+                      Delete
+                    </button>
                   </div>
                 </CardBody>
               </Card>

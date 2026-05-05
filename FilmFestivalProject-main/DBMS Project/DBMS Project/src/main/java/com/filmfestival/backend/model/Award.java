@@ -24,4 +24,10 @@ public class Award {
     @Column(name = "film_id")
     @JsonProperty("film_id")
     private Integer filmId;
+
+    @Column(name = "crew_id")
+    @JsonProperty("crew_id")
+    private Integer crewId;
+
+    private Integer year;
 }

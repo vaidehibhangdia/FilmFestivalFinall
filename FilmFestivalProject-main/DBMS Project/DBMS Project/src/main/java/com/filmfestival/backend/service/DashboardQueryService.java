@@ -13,6 +13,20 @@ public class DashboardQueryService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    public List<Map<String, Object>> getFilmsWithRatings() {
+        String sql = "SELECT f.*, " +
+                     "avg_eval.avg_score as avg_score, " +
+                     "COALESCE(avg_eval.eval_count, 0) as evaluation_count " +
+                     "FROM film f " +
+                     "LEFT JOIN ( " +
+                     "    SELECT film_id, AVG(score) as avg_score, COUNT(*) as eval_count " +
+                     "    FROM evaluation " +
+                     "    GROUP BY film_id " +
+                     ") avg_eval ON f.film_id = avg_eval.film_id " +
+                     "ORDER BY f.title ASC";
+        return jdbcTemplate.queryForList(sql);
+    }
+
     public List<Map<String, Object>> getAllTickets() {
         String sql = "SELECT t.ticket_id, t.screening_id, t.attendee_id, t.seat_number, t.booking_time, " +
                      "s.screening_date, s.start_time, s.ticket_price, a.name AS attendee_name " +

@@ -91,7 +91,12 @@ function Films() {
 
     try {
       if (editingFilm) {
-        await updateFilm(editingFilm.id, payload);
+        const updatePayload = {
+          ...payload,
+          duration_minutes: Number(formData.runtime),
+          release_year: formData.release_year ? Number(formData.release_year) : null,
+        };
+        await updateFilm(editingFilm.id, updatePayload);
         showToast('Film updated successfully', 'success');
       } else {
         await createFilm(payload);
@@ -122,13 +127,18 @@ function Films() {
   };
 
   const handleDelete = async (id) => {
+    console.log('Deleting film with ID:', id);
+    if (!id) {
+      showToast('Invalid film ID', 'error');
+      return;
+    }
     if (!window.confirm('Delete this film?')) return;
     try {
       await deleteFilm(id);
       showToast('Film deleted successfully', 'success');
       await loadFilms();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete film', 'error');
     }
   };
 
@@ -205,6 +215,21 @@ function Films() {
               title="Circular view"
             >
               ◎
+            </button>
+            <button 
+              className="btn btn-danger"
+              style={{ background: 'red', border: '5px solid yellow', color: 'white', fontWeight: 'bold' }}
+              onClick={() => {
+                if (filteredFilms.length > 0) {
+                  const firstFilm = filteredFilms[0];
+                  alert('EMERGENCY: Attempting to delete ' + firstFilm.title);
+                  handleDelete(firstFilm.id || firstFilm.film_id);
+                } else {
+                  alert('No films to delete!');
+                }
+              }}
+            >
+              🔥 EMERGENCY: DELETE FIRST
             </button>
             <Button variant="primary" onClick={handleAddNew} icon="➕">
               Add Film
@@ -299,7 +324,7 @@ function Films() {
                           <span className="value">{film.runtime || 0} min</span>
                         </div>
                       </div>
-                      <div className="film-actions">
+                      <div className="film-actions" style={{ position: 'relative', zIndex: 100 }}>
                         <Button 
                           variant="secondary" 
                           size="sm"
@@ -308,14 +333,16 @@ function Films() {
                         >
                           Edit
                         </Button>
-                        <Button 
-                          variant="danger" 
-                          size="sm"
-                          onClick={() => handleDelete(film.id)}
-                          icon="🗑️"
+                        <button 
+                          className="btn btn-danger btn-sm"
+                          style={{ cursor: 'pointer', background: 'red', color: 'white', border: '1px solid white' }}
+                          onClick={() => { 
+                            alert('Delete clicked for ' + film.title); 
+                            handleDelete(film.id || film.film_id); 
+                          }}
                         >
-                          Delete
-                        </Button>
+                          🗑️ Delete
+                        </button>
                       </div>
                     </CardBody>
                   </Card>
@@ -360,20 +387,19 @@ function Films() {
                       </div>
                     </div>
                     <div className="list-actions">
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        onClick={() => handleEdit(film)}
+                      <Button variant="secondary" size="sm" onClick={() => handleEdit(film)} icon="✏️">Edit</Button>
+                      <button 
+                        className="btn btn-danger btn-sm" 
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          alert('DEBUG: Delete clicked for ' + film.title); 
+                          handleDelete(film.id); 
+                        }}
                       >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={() => handleDelete(film.id)}
-                      >
+                        <span className="btn-icon">🗑️</span>
                         Delete
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 ))}

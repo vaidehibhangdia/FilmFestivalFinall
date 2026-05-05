@@ -76,17 +76,34 @@ function Awards() {
         award_name: formData.award_name.trim(),
         year: Number(formData.year),
       };
-      if (formData.award_id) payload.award_id = Number(formData.award_id);
       if (formData.award_type === 'film') payload.film_id = Number(formData.film_id);
       else payload.crew_id = Number(formData.crew_id);
 
-      await createAward(payload);
-      showToast('Award declared successfully', 'success');
+      if (formData.award_id) {
+        await updateAward(formData.award_id, payload);
+        showToast('Award updated successfully', 'success');
+      } else {
+        await createAward(payload);
+        showToast('Award declared successfully', 'success');
+      }
       await loadData();
       formModal.close();
     } catch (error) {
       showToast(error.message || 'Failed to save award', 'error');
     }
+  };
+
+  const handleEdit = (award) => {
+    setFormData({
+      award_id: award.id,
+      award_name: award.award_name,
+      film_id: award.film_id || '',
+      crew_id: award.crew_id || '',
+      award_type: award.film_id ? 'film' : 'crew',
+      year: award.year,
+    });
+    setErrors({});
+    formModal.open();
   };
 
   const handleDelete = async (id) => {
@@ -96,7 +113,7 @@ function Awards() {
       showToast('Award deleted successfully', 'success');
       await loadData();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete award', 'error');
     }
   };
 
@@ -213,7 +230,15 @@ function Awards() {
                       </div>
                     </div>
                     <div className="film-actions">
-                      <Button variant="danger" size="sm" onClick={() => handleDelete(award.id)} icon="🗑️">Delete</Button>
+                      <Button variant="secondary" size="sm" onClick={() => handleEdit(award)} icon="✏️">Edit</Button>
+                      <button 
+                        className="btn btn-danger btn-sm"
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(award.id); }}
+                      >
+                        <span className="btn-icon">🗑️</span>
+                        Delete
+                      </button>
                     </div>
                   </CardBody>
                 </Card>
@@ -230,7 +255,7 @@ function Awards() {
         footer={
           <div style={{ display: 'flex', gap: '8px' }}>
             <Button variant="ghost" onClick={formModal.close}>Cancel</Button>
-            <Button variant="primary" onClick={handleSubmit}>Declare Award</Button>
+            <Button variant="primary" onClick={handleSubmit}>{formData.award_id ? 'Update Award' : 'Declare Award'}</Button>
           </div>
         }
       >

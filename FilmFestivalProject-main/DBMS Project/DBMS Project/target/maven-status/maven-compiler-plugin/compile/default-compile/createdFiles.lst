@@ -2,7 +2,6 @@ com\filmfestival\backend\model\Ticket.class
 com\filmfestival\backend\controller\PublicController.class
 com\filmfestival\backend\security\jwt\AuthEntryPointJwt.class
 com\filmfestival\backend\model\Venue.class
-com\filmfestival\backend\controller\AdminController.class
 com\filmfestival\backend\repository\CrewRepository.class
 com\filmfestival\backend\model\Award.class
 com\filmfestival\backend\model\Screening.class

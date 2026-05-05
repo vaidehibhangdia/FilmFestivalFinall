@@ -109,13 +109,18 @@ function Screenings() {
   };
 
   const handleDelete = async (id) => {
+    console.log('Deleting screening with ID:', id);
+    if (!id) {
+      showToast('Invalid screening ID', 'error');
+      return;
+    }
     if (!window.confirm('Delete this screening?')) return;
     try {
       await deleteScreening(id);
       showToast('Screening deleted successfully', 'success');
       await loadData();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete screening', 'error');
     }
   };
 
@@ -205,7 +210,14 @@ function Screenings() {
                   </div>
                   <div className="film-actions">
                     <Button variant="secondary" size="sm" onClick={() => handleEdit(screening)} icon="✏️">Edit</Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(screening.id)} icon="🗑️">Delete</Button>
+                    <button 
+                      className="btn btn-danger btn-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(screening.id); }}
+                    >
+                      <span className="btn-icon">🗑️</span>
+                      Delete
+                    </button>
                   </div>
                 </CardBody>
               </Card>

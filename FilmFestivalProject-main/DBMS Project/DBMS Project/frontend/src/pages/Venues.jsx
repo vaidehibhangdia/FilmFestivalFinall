@@ -57,7 +57,11 @@ function Venues() {
 
     try {
       if (editingVenue) {
-        await updateVenue(editingVenue.id, formData);
+        const payload = { 
+          ...formData,
+          capacity: Number(formData.capacity)
+        };
+        await updateVenue(editingVenue.id, payload);
         showToast('Venue updated successfully', 'success');
       } else {
         const payload = { ...formData };
@@ -84,13 +88,18 @@ function Venues() {
   };
 
   const handleDelete = async (id) => {
+    console.log('Deleting venue with ID:', id);
+    if (!id) {
+      showToast('Invalid venue ID', 'error');
+      return;
+    }
     if (!window.confirm('Delete this venue?')) return;
     try {
       await deleteVenue(id);
       showToast('Venue deleted successfully', 'success');
       await loadVenues();
     } catch (error) {
-      // Silently handle deletion error as requested
+      showToast(error.message || 'Failed to delete venue', 'error');
     }
   };
 
@@ -170,7 +179,18 @@ function Venues() {
                   </div>
                   <div className="film-actions">
                     <Button variant="secondary" size="sm" onClick={() => handleEdit(venue)} icon="✏️">Edit</Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(venue.id)} icon="🗑️">Delete</Button>
+                    <button 
+                      className="btn btn-danger btn-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', position: 'relative', zIndex: 9999 }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        alert('DEBUG: Delete clicked for ' + venue.name);
+                        handleDelete(venue.id); 
+                      }}
+                    >
+                      <span className="btn-icon">🗑️</span>
+                      Delete
+                    </button>
                   </div>
                 </CardBody>
               </Card>
